@@ -100,18 +100,7 @@ namespace RainBorg
                 }
                 else if (command.ToLower().StartsWith("restart"))
                 {
-                    Log("RainBorg", "Relaunching bot...");
-                    Paused = true;
-                    JObject Resuming = new JObject
-                    {
-                        ["userPools"] = JToken.FromObject(UserPools),
-                        ["greylist"] = JToken.FromObject(Greylist),
-                        ["userMessages"] = JToken.FromObject(UserMessages)
-                    };
-                    File.WriteAllText(resumeFile, Resuming.ToString());
-                    Process.Start("RelaunchUtility.exe", "RainBorg.exe");
-                    ConsoleEventCallback(2);
-                    Environment.Exit(0);
+                    Relaunch();
                 }
             }
 
@@ -176,7 +165,7 @@ namespace RainBorg
             }
 
             // Developer ping
-            if (developerDonations)
+            /*if (developerDonations)
                 foreach (IGuild Guild in _client.Guilds)
                     if (Guild.GetUserAsync(DID).Result == null)
                         foreach (ulong ChannelId in ChannelWeight.Distinct().ToList())
@@ -192,7 +181,7 @@ namespace RainBorg
                                 }
                                 catch { }
                                 break;
-                            }
+                            }*/
 
             // Completed
             return Task.CompletedTask;
@@ -205,21 +194,7 @@ namespace RainBorg
             Console.WriteLine(arg);
 
             // Relaunch if disconnected
-            if (arg.Message.Contains("Disconnected"))
-            {
-                Log("RainBorg", "Relaunching bot...");
-                Paused = true;
-                JObject Resuming = new JObject
-                {
-                    ["userPools"] = JToken.FromObject(UserPools),
-                    ["greylist"] = JToken.FromObject(Greylist),
-                    ["userMessages"] = JToken.FromObject(UserMessages)
-                };
-                File.WriteAllText(resumeFile, Resuming.ToString());
-                Process.Start("RelaunchUtility.exe", "RainBorg.exe");
-                ConsoleEventCallback(2);
-                Environment.Exit(0);
-            }
+            if (arg.Message.Contains("Disconnected")) Relaunch();
 
             // Completed
             return Task.CompletedTask;
@@ -436,27 +411,16 @@ namespace RainBorg
                 Waiting = 0;
                 while (Waiting < waitTime || Paused)
                 {
-                    await Task.Delay(1000);
-                    Waiting += 1;
+                    if (Waiting < waitTime)
+                    {
+                        await Task.Delay(1000);
+                        Waiting += 1;
+                    }
                 }
             }
 
             // Restart tip loop
             goto Start;
-        }
-
-        // Grab eligible channels
-        private static List<ulong> EligibleChannels()
-        {
-            List<ulong> Output = new List<ulong>();
-            foreach (KeyValuePair<ulong, List<ulong>> Entry in UserPools)
-            {
-                if (Entry.Value.Count >= userMin)
-                {
-                    Output.Add(Entry.Key);
-                }
-            }
-            return Output;
         }
 
         // Remove expired users from userpools
@@ -507,40 +471,6 @@ namespace RainBorg
                 // Wait
                 await Task.Delay(1000);
             }
-        }
-
-        // Remove a user from all user pools
-        public static Task RemoveUserAsync(SocketUser User, ulong ChannelId)
-        {
-            // 0 = all channels
-            if (ChannelId == 0)
-                foreach (KeyValuePair<ulong, List<ulong>> Entry in UserPools)
-                {
-                    if (Entry.Value.Contains(User.Id))
-                        Entry.Value.Remove(User.Id);
-                }
-
-            // Specific channel pool
-            else if (UserPools.ContainsKey(ChannelId))
-            {
-                if (UserPools[ChannelId].Contains(User.Id))
-                    UserPools[ChannelId].Remove(User.Id);
-            }
-
-            return Task.CompletedTask;
-        }
-
-        // On exit
-        public static bool ConsoleEventCallback(int eventType)
-        {
-            // Exiting
-            if (eventType == 2)
-            {
-                if (exitMessage != "") foreach (KeyValuePair<ulong, List<ulong>> Entry in UserPools)
-                    (_client.GetChannel(Entry.Key) as SocketTextChannel).SendMessageAsync(exitMessage).GetAwaiter().GetResult();
-                Config.Save().GetAwaiter().GetResult();
-            }
-            return false;
         }
 
         // Megatip

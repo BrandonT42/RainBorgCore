@@ -230,7 +230,7 @@ namespace RainBorg.Commands
                 await RainBorg.MegaTipAsync(Amount);
                 try
                 {
-                    RainBorg.Log("Command", "Megatip for {0} {1} called by {0}", RainBorg.Format(Amount), RainBorg.currencyName, Context.User.Username);
+                    RainBorg.Log("Command", "Megatip for {0} {1} called by {2}", RainBorg.Format(Amount), RainBorg.currencyName, Context.User.Username);
 
                     // Add reaction to message
                     IEmote emote = Context.Guild.Emotes.First(e => e.Name == RainBorg.successReact);
@@ -256,7 +256,7 @@ namespace RainBorg.Commands
             return Task.CompletedTask;
         }
 
-        [Command("say")]
+        /*[Command("say")]
         public async Task SaySpecAsync(ulong ChannelId, [Remainder]string Remainder = null)
         {
             try { await Context.Message.DeleteAsync(); }
@@ -298,7 +298,7 @@ namespace RainBorg.Commands
                     await Context.Message.AddReactionAsync(new Emoji("👌"));
                 }
             }
-        }
+        }*/
 
         [Command("restart")]
         public void RestartAsync([Remainder]string Remainder = null)
@@ -307,18 +307,7 @@ namespace RainBorg.Commands
             {
                 RainBorg.Log("Command", "Restarted by {0}", Context.User.Username);
 
-                RainBorg.Log("RainBorg", "Relaunching bot...");
-                RainBorg.Paused = true;
-                JObject Resuming = new JObject
-                {
-                    ["userPools"] = JToken.FromObject(RainBorg.UserPools),
-                    ["greylist"] = JToken.FromObject(RainBorg.Greylist),
-                    ["userMessages"] = JToken.FromObject(RainBorg.UserMessages)
-                };
-                File.WriteAllText(RainBorg.resumeFile, Resuming.ToString());
-                Process.Start("RelaunchUtility.exe", "RainBorg.exe");
-                RainBorg.ConsoleEventCallback(2);
-                Environment.Exit(0);
+                RainBorg.Relaunch();
             }
         }
     }

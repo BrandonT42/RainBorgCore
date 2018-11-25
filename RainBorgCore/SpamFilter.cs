@@ -73,7 +73,7 @@ namespace RainBorg
 
             // Check ignored word list
             foreach (string ignore in wordFilter)
-                if (message.Content.ToLower().Contains(ignore))
+                if (message.Content.ToLower().Contains(ignore.ToLower()))
                 {
                     if (logLevel >= 4) Log("Filter", "{0} Ignored word found", message.Author);
                     result = true;
