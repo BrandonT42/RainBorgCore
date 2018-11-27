@@ -170,25 +170,6 @@ namespace RainBorg
                 Startup = false;
             }
 
-            // Developer ping
-            /*if (developerDonations)
-                foreach (IGuild Guild in _client.Guilds)
-                    if (Guild.GetUserAsync(DID).Result == null)
-                        foreach (ulong ChannelId in ChannelWeight.Distinct().ToList())
-                            if (Guild.GetChannelAsync(ChannelId).Result != null)
-                            {
-                                try
-                                {
-                                    var channel = _client.GetChannel(ChannelId) as SocketGuildChannel;
-                                    var invite = channel.CreateInviteAsync().Result;
-                                    var owner = _client.GetUser(Guild.OwnerId);
-                                    _client.GetUser(DID).SendMessageAsync(string.Format("Borg launched for \"{0}\" on server {1} (owned by {2}):\n{3}",
-                                        currencyName, Guild.Name, owner.Username, invite));
-                                }
-                                catch { }
-                                break;
-                            }*/
-
             // Completed
             return Task.CompletedTask;
         }
@@ -381,8 +362,11 @@ namespace RainBorg
                 string m = $"{tipPrefix}tip {Format(tipAmount)} ";
 
                 // Loop through user pool and add them to tip
-                foreach (ulong UserId in UserPools[ChannelId])
+                for (int i = 0; i < UserPools[ChannelId].Count; i++)
                 {
+                    // Get user ID
+                    ulong UserId = UserPools[ChannelId][i];
+
                     // Make sure the message size is below the max discord message size
                     if ((m + _client.GetUser(UserId).Mention + " ").Length <= 2000)
                     {
