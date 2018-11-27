@@ -265,7 +265,7 @@ namespace RainBorg.Commands
             return Task.CompletedTask;
         }
 
-        /*[Command("say")]
+        [Command("say")]
         public async Task SaySpecAsync(ulong ChannelId, [Remainder]string Remainder = null)
         {
             try { await Context.Message.DeleteAsync(); }
@@ -307,7 +307,7 @@ namespace RainBorg.Commands
                     await Context.Message.AddReactionAsync(new Emoji("👌"));
                 }
             }
-        }*/
+        }
 
         [Command("restart")]
         public void RestartAsync([Remainder]string Remainder = null)
