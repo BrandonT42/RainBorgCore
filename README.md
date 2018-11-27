@@ -31,9 +31,7 @@ Once the bot can be run without crashing, you'll want to enter `addoperator 0` i
 
 From there, you must register a wallet with the tip bot using the `registerwallet` command. You can optionally also run a `redirecttips` function to have any funds tipped to directly to the RainBorg automatically go to its balance. Both of these functions must be run on a channel that both bots exist on, as Discord bots are unable to DM each other. To do this, go to a channel that both bots can see and type `$say .registerwallet address`, replacing the bot prefixes with the proper symbol, and address with your wallet's address. To redirect tips back to your bot's tip fund, you would use `$say .redirecttips`.
 
-After that is all set up, you can start using operator commands to configure your bot further, as follows:
-
-(coming soon)
+After that is all set up, you can start using operator commands to configure your bot further, see the documentation in the [RainBorg Wiki](https://github.com/turtlecoin/RainBorgCore/wiki/Operator-Commands).
 
 # Config Breakdown
 
