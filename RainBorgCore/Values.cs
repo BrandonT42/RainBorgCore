@@ -29,7 +29,8 @@ namespace RainBorg
             configFile = "Config.conf",
             resumeFile = "Pools.json",
             logFile = "",
-            databaseFile = "Stats.db";
+            databaseFile = "Stats.db",
+            tipBotDatabaseFile = "users.db";
 
         public static decimal
             tipBalance = 0,
@@ -59,7 +60,11 @@ namespace RainBorg
 
         public static bool
             flushPools = true,
-            developerDonations = true;
+            developerDonations = true,
+            localTipBot = false;
+
+        public static ulong
+            tipBotId = 0;
 
         [JsonExtensionData]
         public static List<ulong>

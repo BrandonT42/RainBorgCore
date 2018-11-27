@@ -20,6 +20,7 @@ namespace RainBorg
                 RainBorg.balanceUrl = (string)Config["balanceUrl"];
                 RainBorg.botAddress = (string)Config["botAddress"];
                 RainBorg.botPaymentId = (string)Config["botPaymentId"];
+                RainBorg.entranceMessage = (string)Config["entranceMessage"];
                 RainBorg.successReact = (string)Config["successReact"];
                 RainBorg.tipFee = (decimal)Config["tipFee"];
                 RainBorg.tipMin = (decimal)Config["tipMin"];
@@ -40,6 +41,9 @@ namespace RainBorg
                 RainBorg.botPrefix = (string)Config["botPrefix"];
                 RainBorg.tipPrefix = (string)Config["tipPrefix"];
                 RainBorg.spamWarning = (string)Config["spamWarning"];
+                RainBorg.localTipBot = (bool)Config["localTipBot"];
+                RainBorg.tipBotId = (ulong)Config["tipBotId"];
+                RainBorg.tipBotDatabaseFile = (string)Config["tipBotDatabaseFile"];
                 RainBorg.ChannelWeight = Config["channelWeight"].ToObject<List<ulong>>();
                 RainBorg.StatusChannel = Config["statusChannel"].ToObject<List<ulong>>();
                 RainBorg.wordFilter = Config["wordFilter"].ToObject<List<string>>();
@@ -65,6 +69,7 @@ namespace RainBorg
                 ["balanceUrl"] = RainBorg.balanceUrl,
                 ["botAddress"] = RainBorg.botAddress,
                 ["botPaymentId"] = RainBorg.botPaymentId,
+                ["entranceMessage"] = RainBorg.entranceMessage,
                 ["successReact"] = RainBorg.successReact,
                 ["tipFee"] = RainBorg.tipFee,
                 ["tipMin"] = RainBorg.tipMin,
@@ -85,6 +90,9 @@ namespace RainBorg
                 ["botPrefix"] = RainBorg.botPrefix,
                 ["tipPrefix"] = RainBorg.tipPrefix,
                 ["spamWarning"] = RainBorg.spamWarning,
+                ["localTipBot"] = RainBorg.localTipBot,
+                ["tipBotDatabaseFile"] = RainBorg.tipBotDatabaseFile,
+                ["tipBotId"] = RainBorg.tipBotId,
                 ["channelWeight"] = JToken.FromObject(RainBorg.ChannelWeight),
                 ["statusChannel"] = JToken.FromObject(RainBorg.StatusChannel),
                 ["wordFilter"] = JToken.FromObject(RainBorg.wordFilter),

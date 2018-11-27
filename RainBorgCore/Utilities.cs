@@ -1,4 +1,5 @@
 ﻿using Discord.WebSocket;
+using Microsoft.Data.Sqlite;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -16,11 +17,32 @@ namespace RainBorg
         {
             try
             {
-                using (WebClient client = new WebClient())
+                if (!localTipBot) using (WebClient client = new WebClient())
                 {
                     string dl = client.DownloadString(balanceUrl);
                     JObject j = JObject.Parse(dl);
                     return (decimal)j["balance"];
+                }
+                else
+                {
+                    // Connect to Database
+                    SqliteConnection Database = new SqliteConnection("Data Source=" + tipBotDatabaseFile);
+                    Database.Open();
+
+                    // Create Sql command
+                    SqliteCommand Command = new SqliteCommand("SELECT balance FROM users WHERE paymentid = @paymentid", Database);
+                    Command.Parameters.AddWithValue("paymentid", botPaymentId.ToUpper());
+
+                    // Execute command
+                    using (SqliteDataReader Reader = Command.ExecuteReader())
+                        if (Reader.Read())
+                            return Reader.GetDecimal(0);
+
+                    // Disconnect Database
+                    Database.Close();
+
+                    // Could not find uid
+                    return -1;
                 }
             }
             catch
@@ -95,7 +117,7 @@ namespace RainBorg
         }
 
         // Grab eligible channels
-        private static List<ulong> EligibleChannels()
+        private static List<ulong> GetEligibleChannels()
         {
             List<ulong> Output = new List<ulong>();
             foreach (KeyValuePair<ulong, List<ulong>> Entry in UserPools)
@@ -123,6 +145,30 @@ namespace RainBorg
             Process.Start("RelaunchUtility.exe", "RainBorg.exe");
             ConsoleEventCallback(2);
             Environment.Exit(0);
+        }
+
+        // Check if tip bot is online
+        public static bool IsTipBotOnline()
+        {
+            // Return true if no tip bot ID is supplied
+            if (tipBotId <= 0) return true;
+
+            // Check client connection state
+            if (_client.ConnectionState != Discord.ConnectionState.Connected) return false;
+
+            // Check that tip bot uid exists
+            SocketUser TipBot = _client.GetUser(tipBotId);
+            if (TipBot == null)
+            {
+                Log("Utility", "Supplied tip bot user ID does not seem to exist");
+                return false;
+            }
+
+            // Check online status
+            if (TipBot.Status != Discord.UserStatus.Online) return false;
+
+            // Tip bot is online
+            return true;
         }
     }
 }

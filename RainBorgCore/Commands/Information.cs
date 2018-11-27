@@ -191,7 +191,6 @@ namespace RainBorg.Commands
             {
                 string m = "```";
                 StatTracker Stat = null;
-                Console.WriteLine(Id);
 
                 // Channel stats
                 if ((Stat = Stats.GetChannelStats(Id)) != null)

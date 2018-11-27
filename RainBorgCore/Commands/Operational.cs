@@ -204,19 +204,23 @@ namespace RainBorg.Commands
             catch { }
             if (Operators.ContainsKey(Context.Message.Author.Id))
             {
-                RainBorg.Waiting = RainBorg.waitTime;
-                try
+                if (RainBorg.IsTipBotOnline())
                 {
-                    RainBorg.Log("Command", "Manual tip called by {0}", Context.User.Username);
+                    RainBorg.waitTime = 0;
+                    try
+                    {
+                        RainBorg.Log("Command", "Manual tip called by {0}", Context.User.Username);
 
-                    // Add reaction to message
-                    IEmote emote = Context.Guild.Emotes.First(e => e.Name == RainBorg.successReact);
-                    await Context.Message.AddReactionAsync(emote);
+                        // Add reaction to message
+                        IEmote emote = Context.Guild.Emotes.First(e => e.Name == RainBorg.successReact);
+                        await Context.Message.AddReactionAsync(emote);
+                    }
+                    catch
+                    {
+                        await Context.Message.AddReactionAsync(new Emoji("👌"));
+                    }
                 }
-                catch
-                {
-                    await Context.Message.AddReactionAsync(new Emoji("👌"));
-                }
+                else RainBorg.Log("Command", "Manual tip called by {0}, but it failed because tip bot is not online", Context.User.Username);
             }
         }
 
@@ -227,19 +231,24 @@ namespace RainBorg.Commands
             catch { }
             if (Operators.ContainsKey(Context.Message.Author.Id))
             {
-                await RainBorg.MegaTipAsync(Amount);
-                try
+                if (RainBorg.IsTipBotOnline())
                 {
-                    RainBorg.Log("Command", "Megatip for {0} {1} called by {2}", RainBorg.Format(Amount), RainBorg.currencyName, Context.User.Username);
+                    await RainBorg.MegaTipAsync(Amount);
+                    try
+                    {
+                        RainBorg.Log("Command", "Megatip for {0} {1} called by {2}", RainBorg.Format(Amount), RainBorg.currencyName, Context.User.Username);
 
-                    // Add reaction to message
-                    IEmote emote = Context.Guild.Emotes.First(e => e.Name == RainBorg.successReact);
-                    await Context.Message.AddReactionAsync(emote);
+                        // Add reaction to message
+                        IEmote emote = Context.Guild.Emotes.First(e => e.Name == RainBorg.successReact);
+                        await Context.Message.AddReactionAsync(emote);
+                    }
+                    catch
+                    {
+                        await Context.Message.AddReactionAsync(new Emoji("👌"));
+                    }
                 }
-                catch
-                {
-                    await Context.Message.AddReactionAsync(new Emoji("👌"));
-                }
+                else RainBorg.Log("Command", "Megatip for {0} {1} called by {2}, but it failed because tip bot is not online",
+                    RainBorg.Format(Amount), RainBorg.currencyName, Context.User.Username);
             }
         }
 
