@@ -26,6 +26,10 @@
   "botPrefix": "$",
   "tipPrefix": ".",
   "spamWarning": "You've been issued a spam warning, this means you won't be included in my next tip. Try to be a better turtle, okay? ;) Consider reading up on how to be a good turtle:\nhttps://medium.com/@turtlecoin/how-to-be-a-good-turtle-20a427028a18",
+  "entranceMessage": "",
+  "localTipBot": false,
+  "tipBotDatabaseFile": "users.db",
+  "tipBotId": 413887034864697364,
   "channelWeight": [
     0
   ],
