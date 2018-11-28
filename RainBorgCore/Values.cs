@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace RainBorg
 {
@@ -140,9 +141,20 @@ namespace RainBorg
         public string Content;
         public UserMessage(SocketMessage Message)
         {
-            //CreatedAt = Message.CreatedAt;
             CreatedAt = DateTimeOffset.Now;
             Content = Message.Content;
+            if (RainBorg.ChannelWeight.Contains(Message.Channel.Id))
+            {
+                Timer Timer = new Timer(new TimerCallback(delegate (object State)
+                {
+                    if (RainBorg.UserPools[Message.Channel.Id].Contains(Message.Author.Id))
+                    {
+                        if (RainBorg.logLevel >= 1) RainBorg.Log("Timeout", "Removed {0} ({1}) from user pool on channel #{2}",
+                                RainBorg._client.GetUser(Message.Author.Id), Message.Author.Id, RainBorg._client.GetChannel(Message.Channel.Id));
+                        RainBorg.UserPools[Message.Channel.Id].Remove(Message.Author.Id);
+                    }
+                }), null, RainBorg.timeoutPeriod * 1000, Timeout.Infinite);
+            }
         }
         public UserMessage() { }
     }

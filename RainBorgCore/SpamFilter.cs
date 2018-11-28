@@ -81,8 +81,7 @@ namespace RainBorg
                 }
 
             // Check that last message was different
-            if (!UserMessages.ContainsKey(message.Author.Id)) UserMessages[message.Author.Id] = new UserMessage(message);
-            else if (UserMessages[message.Author.Id].Content == message.Content)
+            if (UserMessages.ContainsKey(message.Author.Id) && UserMessages[message.Author.Id].Content == message.Content)
             {
                 if (logLevel >= 4) Log("Filter", "{0} Last message same as current one", message.Author);
                 result = true;

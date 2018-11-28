@@ -45,10 +45,10 @@ namespace RainBorg
             }).Start();
 
             // Begin timeout loop in its own thread
-            new Thread(delegate ()
+            /*new Thread(delegate ()
             {
                 UserTimeout();
-            }).Start();
+            }).Start();*/
 
             // Get console commands
             string command = "";
@@ -419,7 +419,7 @@ namespace RainBorg
         }
 
         // Remove expired users from userpools
-        private static async void UserTimeout()
+        /*private static async void UserTimeout()
         {
             while (true)
             {
@@ -466,7 +466,7 @@ namespace RainBorg
                 // Wait
                 await Task.Delay(1000);
             }
-        }
+        }*/
 
         // Megatip
         public static Task MegaTipAsync(decimal amount)
