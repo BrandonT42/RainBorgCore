@@ -8,6 +8,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Timers;
 
 namespace RainBorg
 {
@@ -71,15 +72,19 @@ namespace RainBorg
         }
 
         // Log
-        public static void Log(string Source, string Message, params object[] Objects)
+        public static void Log(int LogLevel, string Source, string Message, params object[] Objects)
         {
-            // Log to console
-            Console.WriteLine("{0} {1}\t{2}", DateTime.Now.ToString("HH:mm:ss"), Source, string.Format(Message, Objects));
+            // Check log level
+            if (logLevel >= LogLevel)
+            {
+                // Log to console
+                Console.WriteLine("{0} {1}\t{2}", DateTime.Now.ToString("HH:mm:ss"), Source, string.Format(Message, Objects));
 
-            // If log file is specified
-            if (!string.IsNullOrEmpty(logFile))
-                using (StreamWriter w = File.AppendText(logFile))
-                    w.WriteLine(string.Format("{0} {1} {2}\t{3}", DateTime.Now.ToLongDateString(), DateTime.Now.ToLongTimeString(), Source, string.Format(Message, Objects)));
+                // If log file is specified
+                if (!string.IsNullOrEmpty(logFile))
+                    using (StreamWriter w = File.AppendText(logFile))
+                        w.WriteLine(string.Format("{0} {1} {2}\t{3}", DateTime.Now.ToLongDateString(), DateTime.Now.ToLongTimeString(), Source, string.Format(Message, Objects)));
+            }
         }
 
         // On exit
@@ -88,7 +93,7 @@ namespace RainBorg
             // Exiting
             if (eventType == 2)
             {
-                if (exitMessage != "") foreach (KeyValuePair<ulong, List<ulong>> Entry in UserPools)
+                if (exitMessage != "") foreach (KeyValuePair<ulong, LimitedList<ulong>> Entry in UserPools)
                         (_client.GetChannel(Entry.Key) as SocketTextChannel).SendMessageAsync(exitMessage).GetAwaiter().GetResult();
                 Config.Save().GetAwaiter().GetResult();
             }
@@ -100,7 +105,7 @@ namespace RainBorg
         {
             // 0 = all channels
             if (ChannelId == 0)
-                foreach (KeyValuePair<ulong, List<ulong>> Entry in UserPools)
+                foreach (KeyValuePair<ulong, LimitedList<ulong>> Entry in UserPools)
                 {
                     if (Entry.Value.Contains(User.Id))
                         Entry.Value.Remove(User.Id);
@@ -120,7 +125,7 @@ namespace RainBorg
         private static List<ulong> GetEligibleChannels()
         {
             List<ulong> Output = new List<ulong>();
-            foreach (KeyValuePair<ulong, List<ulong>> Entry in UserPools)
+            foreach (KeyValuePair<ulong, LimitedList<ulong>> Entry in UserPools)
             {
                 if (Entry.Value.Count >= userMin)
                 {
@@ -133,7 +138,7 @@ namespace RainBorg
         // Relaunch bot
         public static void Relaunch()
         {
-            Log("RainBorg", "Relaunching bot...");
+            Log(0, "RainBorg", "Relaunching bot...");
             Paused = true;
             JObject Resuming = new JObject
             {
@@ -160,7 +165,7 @@ namespace RainBorg
             SocketUser TipBot = _client.GetUser(tipBotId);
             if (TipBot == null)
             {
-                Log("Utility", "Supplied tip bot user ID does not seem to exist");
+                Log(1, "Utility", "Supplied tip bot user ID does not seem to exist");
                 return false;
             }
 
@@ -169,6 +174,54 @@ namespace RainBorg
 
             // Tip bot is online
             return true;
+        }
+    }
+
+    // Utility class for serialization of message log on restart
+    public class UserMessage
+    {
+        public DateTimeOffset CreatedAt;
+        public string Content;
+        public UserMessage(SocketMessage Message)
+        {
+            CreatedAt = DateTimeOffset.Now;
+            Content = Message.Content;
+        }
+        public UserMessage() { }
+    }
+
+    // Utility class for list that has a timeout on all entries
+    public class LimitedList<T> : List<T>
+    {
+        // Adds a list entry that expires after a period of seconds
+        public void Add(T Entry, int Expiration, EventHandler OnExpiration = null)
+        {
+            // Add to list
+            Add(Entry);
+
+            // Create a timer
+            Timer Timer = new Timer();
+            Timer.Interval = Expiration * 1000;
+            Timer.AutoReset = false;
+
+            // Create timer callback
+            Timer.Elapsed += delegate (object sender, ElapsedEventArgs e)
+            {
+                // Remove entry
+                Remove(Entry);
+
+                // Stop timer
+                Timer.Stop();
+
+                // Dispose of timer
+                Timer.Dispose();
+
+                // Trigger expiration event
+                OnExpiration?.Invoke(null, EventArgs.Empty);
+            };
+
+            // Start timer
+            Timer.Start();
         }
     }
 }

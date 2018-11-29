@@ -60,52 +60,52 @@ namespace RainBorg
                 if (command.ToLower().StartsWith("dotip"))
                 {
                     waitTime = 0;
-                    Log("Console", "Tip sent.");
+                    Log(0, "Console", "Tip sent.");
                 }
                 else if (command.ToLower().StartsWith("reset"))
                 {
-                    foreach (KeyValuePair<ulong, List<ulong>> Entry in UserPools)
+                    foreach (KeyValuePair<ulong, LimitedList<ulong>> Entry in UserPools)
                         Entry.Value.Clear();
                     Greylist.Clear();
-                    Log("Console", "Pools reset.");
+                    Log(0, "Console", "Pools reset.");
                 }
                 else if (command.ToLower().StartsWith("loglevel"))
                 {
                     logLevel = int.Parse(command.Substring(command.IndexOf(' ')));
                     Config.Save();
-                    Log("Console", "Log level changed.");
+                    Log(0, "Console", "Log level changed.");
                 }
                 else if (command.ToLower().StartsWith("say"))
                 {
                     foreach (ulong Channel in StatusChannel)
                         (_client.GetChannel(Channel) as SocketTextChannel).SendMessageAsync(command.Substring(command.IndexOf(' ')));
-                    Log("Console", "Sent message.");
+                    Log(0, "Console", "Sent message.");
                 }
                 else if (command.ToLower().StartsWith("addoperator"))
                 {
                     if (!Operators.ContainsKey(ulong.Parse(command.Substring(command.IndexOf(' ')))))
                         Operators.Add(ulong.Parse(command.Substring(command.IndexOf(' '))));
-                    Log("Console", "Added operator.");
+                    Log(0, "Console", "Added operator.");
                 }
                 else if (command.ToLower().StartsWith("removeoperator"))
                 {
                     if (Operators.ContainsKey(ulong.Parse(command.Substring(command.IndexOf(' ')))))
                         Operators.Remove(ulong.Parse(command.Substring(command.IndexOf(' '))));
-                    Log("Console", "Removed operator.");
+                    Log(0, "Console", "Removed operator.");
                 }
                 else if (command.ToLower().StartsWith("pause") && !Paused)
                 {
                     Paused = true;
-                    Log("Console", "Bot paused.");
+                    Log(0, "Console", "Bot paused.");
                 }
                 else if (command.ToLower().StartsWith("resume") && Paused)
                 {
                     Paused = false;
-                    Log("Console", "Bot resumed.");
+                    Log(0, "Console", "Bot resumed.");
                 }
                 else if (command.ToLower().StartsWith("restart"))
                 {
-                    Log("Console", "Relaunching bot.");
+                    Log(0, "Console", "Relaunching bot.");
                     Relaunch();
                 }
             }
@@ -130,9 +130,9 @@ namespace RainBorg
             _client.Ready += Ready;
 
             // Load local files
-            Log("Startup", "Loading config");
+            Log(0, "Startup", "Loading config");
             await Config.Load();
-            Log("Startup", "Loading database");
+            Log(0, "Startup", "Loading database");
             Database.Load();
 
             // Register commands and start bot
@@ -143,9 +143,9 @@ namespace RainBorg
             // Resume if told to
             if (File.Exists(resumeFile))
             {
-                Log("Startup", "Resuming bot...");
+                Log(0, "Startup", "Resuming bot...");
                 JObject Resuming = JObject.Parse(File.ReadAllText(resumeFile));
-                UserPools = Resuming["userPools"].ToObject<Dictionary<ulong, List<ulong>>>();
+                UserPools = Resuming["userPools"].ToObject<Dictionary<ulong, LimitedList<ulong>>>();
                 Greylist = Resuming["greylist"].ToObject<List<ulong>>();
                 UserMessages = Resuming["userMessages"].ToObject<Dictionary<ulong, UserMessage>>();
                 File.Delete(resumeFile);
@@ -178,10 +178,10 @@ namespace RainBorg
         private Task Log(LogMessage arg)
         {
             // Write message to console
-            Console.WriteLine(arg);
+            if (!arg.Message.Contains("PRESENCES_REPLACE")) Log(0, arg.Source, arg.Message);
 
-            // Relaunch if disconnected
-            if (arg.Message.Contains("Disconnected")) Relaunch();
+            // Relaunch if disconnected (dead lock)
+            // if (arg.Message.Contains("Disconnected")) Relaunch();
 
             // Completed
             return Task.CompletedTask;
@@ -208,7 +208,8 @@ namespace RainBorg
             {
                 // Execute command and log errors to console
                 var result = await _commands.ExecuteAsync(context, argPos, _services);
-                if (!result.IsSuccess) Log("Error", "Error executing command: {0}", result.ErrorReason);
+                if (!result.IsSuccess) Log(1, "Error", "Error executing \"{0}\" command sent by {1} ({2}): {3}", message.Content, message.Author,
+                    message.Author.Id, result.ErrorReason);
             }
 
             // Check if channel is a tippable channel
@@ -219,9 +220,11 @@ namespace RainBorg
                 if (!IsSpam && !UserPools[message.Channel.Id].Contains(message.Author.Id))
                 {
                     // Add user to tip pool
-                    UserPools[message.Channel.Id].Add(message.Author.Id);
-                    if (logLevel >= 1)
-                        Log("Tipping", "Adding {0} ({1}) to user pool on channel #{2}", message.Author.Username, message.Author.Id, message.Channel);
+                    UserPools[message.Channel.Id].Add(message.Author.Id, timeoutPeriod, delegate (object sender, EventArgs e)
+                    {
+                        Log(1, "Tipping", "Removed {0} ({1}) from user pool on channel #{2}", message.Author.Username, message.Author.Id, message.Channel);
+                    });
+                    Log(1, "Tipping", "Adding {0} ({1}) to user pool on channel #{2}", message.Author.Username, message.Author.Id, message.Channel);
                 }
 
                 // Remove users from pool if pool exceeds the threshold
@@ -242,7 +245,7 @@ namespace RainBorg
                 if (waitMin < waitMax) waitTime = r.Next(waitMin, waitMax);
                 else waitTime = 10 * 60;
                 waitNext = DateTime.Now.AddSeconds(waitTime).ToString("HH:mm:ss") + " " + _timezone;
-                Log("Tipping", "Next tip in {0} seconds({1})", waitTime, waitNext);
+                Log(1, "Tipping", "Next tip in {0} seconds({1})", waitTime, waitNext);
 
                 // Wait a period of time
                 while (waitTime > 0)
@@ -257,7 +260,7 @@ namespace RainBorg
                 // If client is connected
                 if (_client.ConnectionState != ConnectionState.Connected)
                 {
-                    Log("Tipping", "Client not connected.");
+                    Log(1, "Tipping", "Client not connected.");
 
                     // Delay then return to start
                     await Task.Delay(1000);
@@ -271,7 +274,7 @@ namespace RainBorg
                 if (tipBalance - tipFee < tipMin && tipBalance >= 0)
                 {
                     // Log low balance message
-                    Log("Tipping", "Balance does not meet minimum tip threshold.");
+                    Log(1, "Tipping", "Balance does not meet minimum tip threshold.");
 
                     // Check if bot should show a donation message
                     if (ShowDonation)
@@ -302,7 +305,7 @@ namespace RainBorg
                 // No eligible channels
                 if (Channels.Count < 1)
                 {
-                    Log("Tipping", "No eligible tipping channels.");
+                    Log(1, "Tipping", "No eligible tipping channels.");
 
                     // Delay then return to start
                     await Task.Delay(1000);
@@ -327,7 +330,7 @@ namespace RainBorg
                 // Check that channel is valid
                 if (_client.GetChannel(ChannelId) == null)
                 {
-                    Log("Tipping", "Error tipping on channel id {0} - channel doesn't appear to be valid");
+                    Log(1, "Tipping", "Error tipping on channel id {0} - channel doesn't appear to be valid");
 
                     // Delay then return to start
                     await Task.Delay(1000);
@@ -341,7 +344,7 @@ namespace RainBorg
                 // Check user count
                 if (UserPools[ChannelId].Count < userMin)
                 {
-                    Log("Tipping", "Not enough users to meet threshold, will try again next tipping cycle.");
+                    Log(1, "Tipping", "Not enough users to meet threshold, will try again next tipping cycle.");
 
                     // Delay then return to start
                     await Task.Delay(1000);
@@ -357,7 +360,7 @@ namespace RainBorg
                 int userCount = 0;
                 decimal tipTotal = 0;
                 DateTime tipTime = DateTime.Now;
-                Log("Tipping", "Sending tip of {0} to {1} users in channel #{2}", Format(tipAmount),
+                Log(1, "Tipping", "Sending tip of {0} to {1} users in channel #{2}", Format(tipAmount),
                     UserPools[ChannelId].Count, _client.GetChannel(ChannelId));
                 string m = $"{tipPrefix}tip {Format(tipAmount)} ";
 
@@ -386,7 +389,7 @@ namespace RainBorg
                         }
                         catch (Exception e)
                         {
-                            Log("Error", "Error adding tip to stat sheet: " + e.Message);
+                            Log(1, "Error", "Error adding tip to stat sheet: " + e.Message);
                         }
                     }
                     else break;
@@ -471,7 +474,7 @@ namespace RainBorg
         // Megatip
         public static Task MegaTipAsync(decimal amount)
         {
-            Log("RainBorg", "Megatip called");
+            Log(1, "RainBorg", "Megatip called");
 
             // Get balance
             tipBalance = GetBalance();
@@ -479,7 +482,7 @@ namespace RainBorg
             // Check that tip amount is within bounds
             if (amount + (tipFee * UserPools.Keys.Count) > tipBalance && tipBalance >= 0)
             {
-                Log("RainBorg", "Insufficient balance for megatip, need {0}", RainBorg.Format(tipBalance + (tipFee * UserPools.Keys.Count)));
+                Log(1, "RainBorg", "Insufficient balance for megatip, need {0}", RainBorg.Format(tipBalance + (tipFee * UserPools.Keys.Count)));
                 // Insufficient balance
                 return Task.CompletedTask;
             }
@@ -522,7 +525,7 @@ namespace RainBorg
                                 }
                                 catch (Exception e)
                                 {
-                                    Log("Error", "Error adding tip to stat sheet: " + e.Message);
+                                    Log(1, "Error", "Error adding tip to stat sheet: " + e.Message);
                                 }
                             }
                         }

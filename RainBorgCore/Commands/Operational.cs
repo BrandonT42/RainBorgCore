@@ -22,7 +22,7 @@ namespace RainBorg.Commands
                 await Context.Message.Author.SendMessageAsync("Bot paused.");
                 try
                 {
-                    RainBorg.Log("Command", "Paused by {0}", Context.User.Username);
+                    RainBorg.Log(2, "Command", "Paused by {0}", Context.User.Username);
 
                     // Add reaction to message
                     IEmote emote = Context.Guild.Emotes.First(e => e.Name == RainBorg.successReact);
@@ -44,7 +44,7 @@ namespace RainBorg.Commands
                 await Context.Message.Author.SendMessageAsync("Bot resumed.");
                 try
                 {
-                    RainBorg.Log("Command", "Resumed by {0}", Context.User.Username);
+                    RainBorg.Log(2, "Command", "Resumed by {0}", Context.User.Username);
 
                     // Add reaction to message
                     IEmote emote = Context.Guild.Emotes.First(e => e.Name == RainBorg.successReact);
@@ -68,7 +68,7 @@ namespace RainBorg.Commands
                         if (user != null && RainBorg.UserPools.ContainsKey(Context.Channel.Id) && !RainBorg.UserPools[Context.Channel.Id].Contains(user.Id))
                         {
                             RainBorg.UserPools[Context.Channel.Id].Add(user.Id);
-                            RainBorg.Log("Command", "{0} added to tip pool on channel {1} ({2}) by {3}", user.Id,
+                            RainBorg.Log(2, "Command", "{0} added to tip pool on channel {1} ({2}) by {3}", user.Id,
                                 Context.Channel.Name, Context.Channel.Id, Context.User.Username);
                         }
                     }
@@ -97,7 +97,7 @@ namespace RainBorg.Commands
                         if (RainBorg.UserPools.ContainsKey(Context.Channel.Id) && !RainBorg.UserPools[Context.Channel.Id].Contains(user))
                         {
                             RainBorg.UserPools[Context.Channel.Id].Add(user);
-                            RainBorg.Log("Command", "{0} added to tip pool on channel {1} ({2}) by {3}", user,
+                            RainBorg.Log(2, "Command", "{0} added to tip pool on channel {1} ({2}) by {3}", user,
                                 Context.Channel.Name, Context.Channel.Id, Context.User.Username);
                         }
                     }
@@ -126,7 +126,7 @@ namespace RainBorg.Commands
                         if (RainBorg.UserPools.ContainsKey(Context.Channel.Id) && RainBorg.UserPools[Context.Channel.Id].Contains(user.Id))
                         {
                             RainBorg.UserPools[Context.Channel.Id].Remove(user.Id);
-                            RainBorg.Log("Command", "{0} removed from tip pool on channel {1} ({2}) by {3}", user.Id,
+                            RainBorg.Log(2, "Command", "{0} removed from tip pool on channel {1} ({2}) by {3}", user.Id,
                                 Context.Channel.Name, Context.Channel.Id, Context.User.Username);
                         }
                     }
@@ -155,7 +155,7 @@ namespace RainBorg.Commands
                         if (RainBorg.UserPools.ContainsKey(Context.Channel.Id) && RainBorg.UserPools[Context.Channel.Id].Contains(user))
                         {
                             RainBorg.UserPools[Context.Channel.Id].Remove(user);
-                            RainBorg.Log("Command", "{0} removed from tip pool on channel {1} ({2}) by {3}", user,
+                            RainBorg.Log(2, "Command", "{0} removed from tip pool on channel {1} ({2}) by {3}", user,
                                 Context.Channel.Name, Context.Channel.Id, Context.User.Username);
                         }
                     }
@@ -178,13 +178,13 @@ namespace RainBorg.Commands
         {
             if (Operators.ContainsKey(Context.Message.Author.Id))
             {
-                foreach (KeyValuePair<ulong, List<ulong>> Entry in RainBorg.UserPools)
+                foreach (KeyValuePair<ulong, LimitedList<ulong>> Entry in RainBorg.UserPools)
                     Entry.Value.Clear();
                 RainBorg.Greylist.Clear();
                 await Context.Message.Author.SendMessageAsync("User pools and greylist cleared.");
                 try
                 {
-                    RainBorg.Log("Command", "All tip pools reset by {0}", Context.User.Username);
+                    RainBorg.Log(2, "Command", "All tip pools reset by {0}", Context.User.Username);
 
                     // Add reaction to message
                     IEmote emote = Context.Guild.Emotes.First(e => e.Name == RainBorg.successReact);
@@ -209,7 +209,7 @@ namespace RainBorg.Commands
                     RainBorg.waitTime = 0;
                     try
                     {
-                        RainBorg.Log("Command", "Manual tip called by {0}", Context.User.Username);
+                        RainBorg.Log(2, "Command", "Manual tip called by {0}", Context.User.Username);
 
                         // Add reaction to message
                         IEmote emote = Context.Guild.Emotes.First(e => e.Name == RainBorg.successReact);
@@ -220,7 +220,7 @@ namespace RainBorg.Commands
                         await Context.Message.AddReactionAsync(new Emoji("👌"));
                     }
                 }
-                else RainBorg.Log("Command", "Manual tip called by {0}, but it failed because tip bot is not online", Context.User.Username);
+                else RainBorg.Log(2, "Command", "Manual tip called by {0}, but it failed because tip bot is not online", Context.User.Username);
             }
         }
 
@@ -236,7 +236,7 @@ namespace RainBorg.Commands
                     await RainBorg.MegaTipAsync(Amount);
                     try
                     {
-                        RainBorg.Log("Command", "Megatip for {0} {1} called by {2}", RainBorg.Format(Amount), RainBorg.currencyName, Context.User.Username);
+                        RainBorg.Log(2, "Command", "Megatip for {0} {1} called by {2}", RainBorg.Format(Amount), RainBorg.currencyName, Context.User.Username);
 
                         // Add reaction to message
                         IEmote emote = Context.Guild.Emotes.First(e => e.Name == RainBorg.successReact);
@@ -247,7 +247,7 @@ namespace RainBorg.Commands
                         await Context.Message.AddReactionAsync(new Emoji("👌"));
                     }
                 }
-                else RainBorg.Log("Command", "Megatip for {0} {1} called by {2}, but it failed because tip bot is not online",
+                else RainBorg.Log(2, "Command", "Megatip for {0} {1} called by {2}, but it failed because tip bot is not online",
                     RainBorg.Format(Amount), RainBorg.currencyName, Context.User.Username);
             }
         }
@@ -257,7 +257,7 @@ namespace RainBorg.Commands
         {
             if (Operators.ContainsKey(Context.Message.Author.Id))
             {
-                RainBorg.Log("Command", "Exited by {0}", Context.User.Username);
+                RainBorg.Log(2, "Command", "Exited by {0}", Context.User.Username);
 
                 RainBorg.ConsoleEventCallback(2);
                 Environment.Exit(0);
@@ -314,7 +314,7 @@ namespace RainBorg.Commands
         {
             if (Operators.ContainsKey(Context.Message.Author.Id))
             {
-                RainBorg.Log("Command", "Restarted by {0}", Context.User.Username);
+                RainBorg.Log(2, "Command", "Restarted by {0}", Context.User.Username);
 
                 RainBorg.Relaunch();
             }

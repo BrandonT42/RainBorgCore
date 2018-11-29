@@ -53,7 +53,7 @@ namespace RainBorg
                 RainBorg.donationImages = Config["donationImages"].ToObject<List<string>>();
                 foreach (ulong Id in RainBorg.ChannelWeight)
                     if (!RainBorg.UserPools.ContainsKey(Id))
-                        RainBorg.UserPools.Add(Id, new List<ulong>());
+                        RainBorg.UserPools.Add(Id, new LimitedList<ulong>());
             }
             else await Save();
         }

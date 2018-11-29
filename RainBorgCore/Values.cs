@@ -77,8 +77,8 @@ namespace RainBorg
             ignoredNicknames = new List<string>();
 
         [JsonExtensionData]
-        public static Dictionary<ulong, List<ulong>>
-            UserPools = new Dictionary<ulong, List<ulong>>();
+        public static Dictionary<ulong, LimitedList<ulong>>
+            UserPools = new Dictionary<ulong, LimitedList<ulong>>();
 
         [JsonExtensionData]
         public static Dictionary<ulong, UserMessage>
@@ -132,30 +132,5 @@ namespace RainBorg
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern bool SetConsoleCtrlHandler(ConsoleEventDelegate callback, bool add);
         private const ulong DID = 408364361598369802;
-    }
-
-    // Utility class for serialization of message log on restart
-    public class UserMessage
-    {
-        public DateTimeOffset CreatedAt;
-        public string Content;
-        public UserMessage(SocketMessage Message)
-        {
-            CreatedAt = DateTimeOffset.Now;
-            Content = Message.Content;
-            if (RainBorg.ChannelWeight.Contains(Message.Channel.Id))
-            {
-                Timer Timer = new Timer(new TimerCallback(delegate (object State)
-                {
-                    if (RainBorg.UserPools[Message.Channel.Id].Contains(Message.Author.Id))
-                    {
-                        if (RainBorg.logLevel >= 1) RainBorg.Log("Timeout", "Removed {0} ({1}) from user pool on channel #{2}",
-                                RainBorg._client.GetUser(Message.Author.Id), Message.Author.Id, RainBorg._client.GetChannel(Message.Channel.Id));
-                        RainBorg.UserPools[Message.Channel.Id].Remove(Message.Author.Id);
-                    }
-                }), null, RainBorg.timeoutPeriod * 1000, Timeout.Infinite);
-            }
-        }
-        public UserMessage() { }
     }
 }
