@@ -67,7 +67,7 @@ namespace RainBorg.Commands
                     {
                         if (user != null && RainBorg.UserPools.ContainsKey(Context.Channel.Id) && !RainBorg.UserPools[Context.Channel.Id].Contains(user.Id))
                         {
-                            RainBorg.UserPools[Context.Channel.Id].Add(user.Id);
+                            RainBorg.UserPools[Context.Channel.Id].Add(user.Id, RainBorg.timeoutPeriod);
                             RainBorg.Log(2, "Command", "{0} added to tip pool on channel {1} ({2}) by {3}", user.Id,
                                 Context.Channel.Name, Context.Channel.Id, Context.User.Username);
                         }
@@ -96,7 +96,7 @@ namespace RainBorg.Commands
                     {
                         if (RainBorg.UserPools.ContainsKey(Context.Channel.Id) && !RainBorg.UserPools[Context.Channel.Id].Contains(user))
                         {
-                            RainBorg.UserPools[Context.Channel.Id].Add(user);
+                            RainBorg.UserPools[Context.Channel.Id].Add(user, RainBorg.timeoutPeriod);
                             RainBorg.Log(2, "Command", "{0} added to tip pool on channel {1} ({2}) by {3}", user,
                                 Context.Channel.Name, Context.Channel.Id, Context.User.Username);
                         }
