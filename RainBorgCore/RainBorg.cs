@@ -370,6 +370,9 @@ namespace RainBorg
                     // Get user ID
                     ulong UserId = UserPools[ChannelId][i];
 
+                    // Check that user is valid
+                    if (_client.GetUser(UserId) == null) continue;
+
                     // Make sure the message size is below the max discord message size
                     if ((m + _client.GetUser(UserId).Mention + " ").Length <= 2000)
                     {
@@ -396,7 +399,8 @@ namespace RainBorg
                 }
 
                 // Send tip message to channel
-                await (_client.GetChannel(ChannelId) as SocketTextChannel).SendMessageAsync(m);
+                try { await (_client.GetChannel(ChannelId) as SocketTextChannel).SendMessageAsync(m); }
+                catch { }
 
                 // Begin building status message
                 var statusBuilder = new EmbedBuilder();
@@ -412,7 +416,8 @@ namespace RainBorg
 
                 // Send status message to all status channels
                 foreach (ulong u in StatusChannel)
-                    await (_client.GetChannel(u) as SocketTextChannel).SendMessageAsync("", false, statusBuilder);
+                    try { await (_client.GetChannel(u) as SocketTextChannel).SendMessageAsync("", false, statusBuilder); }
+                    catch { }
 
                 // Clear user pool
                 if (flushPools) UserPools[ChannelId].Clear();
@@ -420,56 +425,6 @@ namespace RainBorg
                 ShowDonation = true;
             }
         }
-
-        // Remove expired users from userpools
-        /*private static async void UserTimeout()
-        {
-            while (true)
-            {
-                try
-                {
-                    // Check if paused or tip bot is offline
-                    while (Paused || !IsTipBotOnline()) await Task.Delay(1000);
-
-                    // Create a deletion buffer
-                    Dictionary<ulong, List<ulong>> Temp = new Dictionary<ulong, List<ulong>>();
-
-                    // Loop through pools and check for timeout
-                    foreach (KeyValuePair<ulong, List<ulong>> UserPool in UserPools)
-                    {
-                        // Iterate over users within pool
-                        List<ulong> Pool = new List<ulong>();
-                        for (int i = 0; i < UserPool.Value.Count; i++)
-                        {
-                            // Check if their last message was created beyond the timeout period
-                            if (DateTimeOffset.Now.ToUnixTimeSeconds() - UserMessages[UserPool.Value[i]].CreatedAt.ToUnixTimeSeconds() > timeoutPeriod)
-                            {
-                                if (logLevel >= 3)
-                                    Log("Timeout", "Checking {0} against {1} on channel #{2}",
-                                        UserMessages[UserPool.Value[i]].CreatedAt.ToUnixTimeSeconds(), DateTimeOffset.Now.ToUnixTimeSeconds(), _client.GetChannel(UserPool.Key));
-
-                                // Remove user from channel's pool
-                                if (logLevel >= 1)
-                                    Log("Timeout", "Removed {0} ({1}) from user pool on channel #{2}",
-                                        _client.GetUser(UserPool.Value[i]), UserPool.Value[i], _client.GetChannel(UserPool.Key));
-                                //await RemoveUserAsync(_client.GetUser(Pool[i]), UserPool.Key);
-                                Pool.Add(UserPool.Value[i]);
-                            }
-                        }
-                        Temp.Add(UserPool.Key, Pool);
-                    }
-
-                    // Iterate over all channel pools
-                    foreach (KeyValuePair<ulong, List<ulong>> UserPool in Temp)
-                        for (int i = 0; i < UserPool.Value.Count; i++)
-                            await RemoveUserAsync(_client.GetUser(UserPool.Value[i]), UserPool.Key);
-                }
-                catch { }
-
-                // Wait
-                await Task.Delay(1000);
-            }
-        }*/
 
         // Megatip
         public static Task MegaTipAsync(decimal amount)
@@ -507,33 +462,33 @@ namespace RainBorg
                     string m = $"{RainBorg.tipPrefix}tip " + RainBorg.Format(tipAmount) + " ";
                     for (int i = 0; i < UserPools[ChannelId].Count; i++)
                     {
-                        try
+                        // Check that user is valid
+                        if (_client.GetUser(UserPools[ChannelId][i]) == null) continue;
+
+                        // Make sure the message size is below the max discord message size
+                        if ((m + _client.GetUser(UserPools[ChannelId][i]).Mention + " ").Length <= 2000)
                         {
-                            // Make sure the message size is below the max discord message size
-                            if ((m + _client.GetUser(UserPools[ChannelId][i]).Mention + " ").Length <= 2000)
+                            // Add a username mention
+                            m += _client.GetUser(UserPools[ChannelId][i]).Mention + " ";
+
+                            // Add to tip total
+                            tipTotal += tipAmount;
+
+                            // Add tip to stats
+                            try
                             {
-                                // Add a username mention
-                                m += _client.GetUser(UserPools[ChannelId][i]).Mention + " ";
-
-                                // Add to tip total
-                                tipTotal += tipAmount;
-
-                                // Add tip to stats
-                                try
-                                {
-                                    Stats.Tip(tipTime, ChannelId, UserPools[ChannelId][i], tipAmount);
-                                }
-                                catch (Exception e)
-                                {
-                                    Log(1, "Error", "Error adding tip to stat sheet: " + e.Message);
-                                }
+                                Stats.Tip(tipTime, ChannelId, UserPools[ChannelId][i], tipAmount);
+                            }
+                            catch (Exception e)
+                            {
+                                Log(1, "Error", "Error adding tip to stat sheet: " + e.Message);
                             }
                         }
-                        catch { }
                     }
 
                     // Send tip message to channel
-                    (_client.GetChannel(ChannelId) as SocketTextChannel).SendMessageAsync(m);
+                    try { (_client.GetChannel(ChannelId) as SocketTextChannel).SendMessageAsync(m); }
+                    catch { }
 
                     // Clear list
                     if (flushPools) UserPools[ChannelId].Clear();
@@ -556,7 +511,8 @@ namespace RainBorg
 
             // Send status message to all status channels
             foreach (ulong u in StatusChannel)
-                (_client.GetChannel(u) as SocketTextChannel).SendMessageAsync("", false, builder);
+                try { (_client.GetChannel(u) as SocketTextChannel).SendMessageAsync("", false, builder); }
+                catch { }
 
             // Completed
             return Task.CompletedTask;
