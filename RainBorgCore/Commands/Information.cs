@@ -146,7 +146,7 @@ namespace RainBorg.Commands
             if (Operators.ContainsKey(Context.Message.Author.Id))
             {
                 string m = "```Current User Pools:\n";
-                foreach (KeyValuePair<ulong, List<ulong>> entry in RainBorg.UserPools)
+                foreach (KeyValuePair<ulong, LimitedList<ulong>> entry in RainBorg.UserPools)
                     try
                     {
                         m += "#" + Context.Client.GetChannel(entry.Key) + " (" + entry.Key + ") :\n";
@@ -167,7 +167,7 @@ namespace RainBorg.Commands
             if (Operators.ContainsKey(Context.Message.Author.Id))
             {
                 string m = "```Tippable Channels:\n";
-                foreach (KeyValuePair<ulong, List<ulong>> entry in RainBorg.UserPools)
+                foreach (KeyValuePair<ulong, LimitedList<ulong>> entry in RainBorg.UserPools)
                     try
                     {
                         m += "#" + Context.Client.GetChannel(entry.Key) + ", weight of ";
@@ -191,7 +191,6 @@ namespace RainBorg.Commands
             {
                 string m = "```";
                 StatTracker Stat = null;
-                Console.WriteLine(Id);
 
                 // Channel stats
                 if ((Stat = Stats.GetChannelStats(Id)) != null)

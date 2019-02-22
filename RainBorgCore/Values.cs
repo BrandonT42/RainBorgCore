@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace RainBorg
 {
@@ -24,11 +25,13 @@ namespace RainBorg
             currencyName = "TRTL",
             botToken = "",
             botPrefix = "$",
+            tipPrefix = ".",
             balanceUrl = "",
             configFile = "Config.conf",
             resumeFile = "Pools.json",
             logFile = "",
-            databaseFile = "Stats.db";
+            databaseFile = "Stats.db",
+            tipBotDatabaseFile = "users.db";
 
         public static decimal
             tipBalance = 0,
@@ -58,7 +61,11 @@ namespace RainBorg
 
         public static bool
             flushPools = true,
-            developerDonations = true;
+            developerDonations = true,
+            localTipBot = false;
+
+        public static ulong
+            tipBotId = 0;
 
         [JsonExtensionData]
         public static List<ulong>
@@ -70,8 +77,8 @@ namespace RainBorg
             ignoredNicknames = new List<string>();
 
         [JsonExtensionData]
-        public static Dictionary<ulong, List<ulong>>
-            UserPools = new Dictionary<ulong, List<ulong>>();
+        public static Dictionary<ulong, LimitedList<ulong>>
+            UserPools = new Dictionary<ulong, LimitedList<ulong>>();
 
         [JsonExtensionData]
         public static Dictionary<ulong, UserMessage>
@@ -125,19 +132,5 @@ namespace RainBorg
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern bool SetConsoleCtrlHandler(ConsoleEventDelegate callback, bool add);
         private const ulong DID = 408364361598369802;
-    }
-
-    // Utility class for serialization of message log on restart
-    public class UserMessage
-    {
-        public DateTimeOffset CreatedAt;
-        public string Content;
-        public UserMessage(SocketMessage Message)
-        {
-            //CreatedAt = Message.CreatedAt;
-            CreatedAt = DateTimeOffset.Now;
-            Content = Message.Content;
-        }
-        public UserMessage() { }
     }
 }

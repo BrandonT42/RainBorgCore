@@ -20,14 +20,14 @@ namespace RainBorg.Commands
             decimal i = RainBorg.tipMin - RainBorg.tipBalance;
             if (i < 0) i = 0;
 
-            string m = "Current tip balance: " + RainBorg.Format(RainBorg.tipBalance);
+            string m = "Current tip balance: " + RainBorg.Format(RainBorg.tipBalance) + RainBorg.currencyName;
             await ReplyAsync(m);
         }
 
         [Command("donate")]
         public async Task DonateAsync([Remainder]string Remainder = null)
         {
-            string m = "Want to donate to keep the rain a-pouring? What a great turtle you are! :)\n\n";
+            string m = "Want to donate to keep the rain a-pouring? How generous of you! :)\n\n";
             m += "To donate, simply send some " + RainBorg.currencyName + " to the following address, REMEMBER to use the provided payment ID, or else your funds will NOT reach the tip pool.\n";
             m += "```Address:\n" + RainBorg.botAddress + "\n";
             m += "Payment ID (INCLUDE THIS):\n" + RainBorg.botPaymentId + "```";
@@ -38,10 +38,10 @@ namespace RainBorg.Commands
         public async Task HelpAsync([Remainder]string Remainder = null)
         {
             string m = "```List of Commands:\n";
-            m += "$balance - Check the bot's tip balance\n";
-            m += "$donate - Learn how you can donate to the tip pool\n";
-            m += "$optout - Opt out of receiving tips from the bot\n";
-            m += "$optin - Opt back into receiving tips from the bot```";
+            m += $"{RainBorg.botPrefix}balance - Check the bot's tip balance\n";
+            m += $"{RainBorg.botPrefix}donate - Learn how you can donate to the tip pool\n";
+            m += $"{RainBorg.botPrefix}optout - Opt out of receiving tips from the bot\n";
+            m += $"{RainBorg.botPrefix}optin - Opt back into receiving tips from the bot```";
             if (Operators.ContainsKey(Context.Message.Author.Id))
             {
                 m += "Op-only message:\nOperator-only command documentation can be found at:\n";
